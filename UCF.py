@@ -4,8 +4,16 @@ import pymysql
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.model_selection import train_test_split
 import numpy as np
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+user = os.getenv("DB_USER")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+database = os.getenv("DB_NAME")
 engine = create_engine(
-    "mysql+pymysql://root:1234567@localhost/movie_recommender_system"
+    f"mysql+pymysql://{user}:{password}@{host}/{database}"
 )
 ratings = pd.read_sql(
     "SELECT * FROM ratings",
