@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from dotenv import load_dotenv
 import os
+import streamlit as st
 
 load_dotenv()
 user = os.getenv("DB_USER")
@@ -51,7 +52,7 @@ def predict_rating(user_id , movie_id,similarity_df,user_item_matrix,k=10):
         return None
     return float(numerator/denominator)
 
-predicted_rating=predict_rating(4,690,similarity_df,user_item_matrix,10)
+#predicted_rating=predict_rating(4,690,similarity_df,user_item_matrix,10)
 #print(predicted_rating)
 def recommend_movies(user_id,user_item_matrix,similarity_df,k=10,top_n=10):
     unseen_movies = user_item_matrix.loc[user_id][
@@ -71,12 +72,28 @@ def recommend_movies_with_names(user_id,user_item_matrix,similarity_df,conn,k=10
     movie_ids= [movie_id for movie_id,score in recs]
     query = f"SELECT movie_id,movie_title FROM movies WHERE movie_id IN ({','.join(map(str,movie_ids))})"
     movies_df = pd.read_sql(query,conn)
+    id_to_title = dict(zip(movies_df['movie_id'],movies_df['movie_title']))
+    result = []
     for movie_id,score in recs:
-        title = movies_df[movies_df['movie_id']==movie_id]['movie_title'].values[0]
-        print(f"{title}:{float(score):.2f}")
+        result.append({
+            'title': id_to_title[movie_id],
+            'score':float(score)
+        })
+    return result
 
-recommend_movies_with_names(789,user_item_matrix,similarity_df,engine,150,20)
+#recommend_movies_with_names(789,user_item_matrix,similarity_df,engine,150,20)
 
+st.title("movie recommendation system")
+user_id = st.number_input("enter the user id",min_value=1,step=1)
+#k2=st.slider("enter the number of similar users",min_value=10,max_value=200,value=150)
+top_n2 = st.slider("number of movies for recommendation:",min_value=5,max_value=30,value=10)
+if st.button("get recommendations"):
+    
+    recs = recommend_movies_with_names(user_id,user_item_matrix,similarity_df,engine,150,top_n2)
+    st.subheader("recommended movies:")
+    for rec in recs:
+        
+        st.write(f"{rec['title']} - predicted score : {rec['score']}")
 
 
     
