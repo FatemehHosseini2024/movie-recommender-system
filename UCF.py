@@ -111,7 +111,7 @@ if 'user_id' not in st.session_state:
 if 'username' not in st.session_state:
     st.session_state.username= None
 if st.session_state.user_id is None:
-    st.title("movie recommendation system 1")
+    st.title("log in and sign up")
     tab1 , tab2 = st.tabs(["log in","sign up"])
     with tab1 :
         st.subheader("log in")
@@ -143,6 +143,50 @@ else:
         st.session_state.user_id=None
         st.session_state.username=None
         st.rerun()
+st.subheader("search and rate movies")
+search_query = st.text_input("enter the movie's name:")
+if search_query:
+    cursor = mydb.cursor()
+    cursor.execute(
+        "SELECT movie_id,movie_title FROM movies WHERE movie_title LIKE %s",
+        (f'%{search_query}%',)
+    )
+    results = cursor.fetchall()
+    if results :
+        for movie_id,title in results:
+            col1,col2,col3 = st.columns([3,1,1])
+            with col1:
+                st.write(title)
+            with col2:
+                rating = st.selectbox(
+                    "rating:",
+                    [0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0],
+                    key=f"rating_{movie_id}"
+                )
+            with col3:
+                if st.button("record rating",key=f"btn_{movie_id}"):
+                    if st.session_state.user_id is None:
+                        st.warning("you have to log in first!")
+                    else:
+                        cursor.execute(
+                        "INSERT INTO ratings (user_id,item_id,rating) VALUES (%s,%s,%s)ON DUPLICATE KEY UPDATE rating=%s",
+                        (st.session_state.user_id,movie_id,rating,rating)
+                        )
+                        mydb.commit()
+                        st.success(f"score recorded!")
+    else:
+        st.warning("no movie found!")
+        st.subheader("add a new movie :")
+        new_title=st.text_input("movie's name :")
+        if st.button("add the movie"):
+            cursor.execute(
+                "INSERT INTO movies (movie_title) VALUES (%s)",
+                (new_title,)
+            )
+            mydb.commit()
+            st.success(f"{new_title} movie is added ! now you can rate it")
+        
+
 st.title("movie recommendation system")
 user_id = st.number_input("enter the user id",min_value=1,step=1)
 #k2=st.slider("enter the number of similar users",min_value=10,max_value=200,value=150)
