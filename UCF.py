@@ -7,6 +7,7 @@ import numpy as np
 from dotenv import load_dotenv
 import os
 import streamlit as st
+import mysql.connector
 
 load_dotenv()
 user = os.getenv("DB_USER")
@@ -16,10 +17,15 @@ database = os.getenv("DB_NAME")
 engine = create_engine(
     f"mysql+pymysql://{user}:{password}@{host}/{database}"
 )
-ratings = pd.read_sql(
-    "SELECT * FROM ratings",
-    engine
+mydb = mysql.connector.connect(
+    host=host,
+    user=user,
+    password=password,
+    database=database
 )
+
+
+ratings=pd.read_sql("SELECT * FROM ratings",engine)
 #print(ratings)
 user_item_matrix = ratings.pivot_table(
     index='user_id',
@@ -70,8 +76,9 @@ def recommend_movies(user_id,user_item_matrix,similarity_df,k=10,top_n=10):
 def recommend_movies_with_names(user_id,user_item_matrix,similarity_df,conn,k=10,top_n=10):
     recs = recommend_movies(user_id,user_item_matrix,similarity_df,k,top_n)
     movie_ids= [movie_id for movie_id,score in recs]
+    
     query = f"SELECT movie_id,movie_title FROM movies WHERE movie_id IN ({','.join(map(str,movie_ids))})"
-    movies_df = pd.read_sql(query,conn)
+    movies_df=pd.read_sql(query,engine)
     id_to_title = dict(zip(movies_df['movie_id'],movies_df['movie_title']))
     result = []
     for movie_id,score in recs:
@@ -82,7 +89,60 @@ def recommend_movies_with_names(user_id,user_item_matrix,similarity_df,conn,k=10
     return result
 
 #recommend_movies_with_names(789,user_item_matrix,similarity_df,engine,150,20)
-
+def register_user(username,password,conn):
+    cursor = mydb.cursor()
+    cursor.execute(
+        "INSERT INTO users (username,password) VALUES (%s,%s)",
+        (username,password)
+    )
+    conn.commit()
+    return cursor.lastrowid 
+def login_user(username,password,conn):
+    cursor = mydb.cursor()
+    cursor.execute(
+        "SELECT user_id FROM users WHERE username=%s AND password=%s",
+        (username,password)
+    )
+    result=cursor.fetchone()
+    return result[0] if result else None
+    
+if 'user_id' not in st.session_state:
+    st.session_state.user_id = None
+if 'username' not in st.session_state:
+    st.session_state.username= None
+if st.session_state.user_id is None:
+    st.title("movie recommendation system 1")
+    tab1 , tab2 = st.tabs(["log in","sign up"])
+    with tab1 :
+        st.subheader("log in")
+        username = st.text_input("Username",key="login_username")
+        password=st.text_input("password:",type="password",key="login_password")
+        if st.button("log in"):
+            user_id = login_user(username,password,mydb)
+            if user_id:
+                st.session_state.user_id=user_id
+                st.session_state.username=username
+                st.rerun()
+            else:
+                st.error("username or password is wrong!")
+    with tab2:
+        st.subheader("sign up")
+        new_username = st.text_input("username:",key="reg_username")
+        new_password = st.text_input("password:",type="password",key="reg_password")
+        if st.button("sign up"):
+            user_id=register_user(new_username,new_password,mydb)
+            if user_id:
+                st.session_state.user_id = user_id
+                st.session_state.username=new_username
+                st.rerun()
+            else:
+                st.error("this username has already registered!")
+else:
+    st.title(f"hello {st.session_state.username}!")
+    if st.button("exit"):
+        st.session_state.user_id=None
+        st.session_state.username=None
+        st.rerun()
 st.title("movie recommendation system")
 user_id = st.number_input("enter the user id",min_value=1,step=1)
 #k2=st.slider("enter the number of similar users",min_value=10,max_value=200,value=150)
