@@ -34,8 +34,8 @@ user_item_matrix = ratings.pivot_table(
 )
 
 matrix_filled = user_item_matrix.fillna(0)
-similarity_pearson = matrix_filled.T.corr()
-similarity_pearson_df = pd.DataFrame(similarity_pearson,index=user_item_matrix.index,columns=user_item_matrix.index)
+similarity = cosine_similarity(matrix_filled)
+similarity_df = pd.DataFrame(similarity,index=user_item_matrix.index,columns=user_item_matrix.index)
 
 def get_top_k_similar_users(user_id,similarity_df,k=10):
     similar_users = similarity_df[user_id].drop(user_id)
@@ -197,12 +197,25 @@ else :
 top_n2 = st.slider("number of movies for recommendation:",min_value=5,max_value=30,value=10)
 
 if st.button("get recommendations"):
-    
-    recs = recommend_movies_with_names(user_id,user_item_matrix,similarity_pearson_df,engine,150,top_n2)
-    st.subheader("recommended movies:")
-    for rec in recs:
+    cursor = mydb.cursor()
+    cursor.execute(
+        "SELECT COUNT(*) FROM ratings WHERE user_id = %s",
+        (user_id,)
+    )
+    num_ratings = cursor.fetchone()[0]
+    if num_ratings==0:
+        st.warning("you should rate at least one movie !")
+    else:
+        recommendations = recommend_movies(user_id,user_item_matrix,similarity_df,150,top_n2)
         
-        st.write(f"{rec['title']} - predicted score : {rec['score']:.3f}")
+        if not recommendations:
+            st.warning("you should rate at least one of the movies recorded on this site! ")
+        else:
+            recs = recommend_movies_with_names(user_id,user_item_matrix,similarity_df,engine,150,top_n2)
+            st.subheader("recommended movies:")
+            for rec in recs:
+        
+                st.write(f"{rec['title']} - predicted score : {rec['score']:.3f}")
 
 
     

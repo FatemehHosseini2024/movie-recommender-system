@@ -42,7 +42,7 @@ for _, row in test_df.iterrows():
     if movie_id not in train_matrix.columns:
         continue    
     
-    pred = predict_rating(user_id, movie_id, similarity_pearson_df2, train_matrix,150)
+    pred = predict_rating(user_id, movie_id, similarity_df2, train_matrix,150)
     if pred is not None:
         actuals.append(actual_rating)
         predictions.append(pred)
