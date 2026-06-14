@@ -26,25 +26,23 @@ mydb = mysql.connector.connect(
 
 
 ratings=pd.read_sql("SELECT * FROM ratings",engine)
-#print(ratings)
+
 user_item_matrix = ratings.pivot_table(
     index='user_id',
     columns='item_id',
     values='rating'
 )
-#print(user_item_matrix.shape)
-#print(user_item_matrix)
+
 matrix_filled = user_item_matrix.fillna(0)
-similarity = cosine_similarity(matrix_filled)
-similarity_df=pd.DataFrame(similarity,index=user_item_matrix.index,columns=user_item_matrix.index)
-#print(similarity_df)
+similarity_pearson = matrix_filled.T.corr()
+similarity_pearson_df = pd.DataFrame(similarity_pearson,index=user_item_matrix.index,columns=user_item_matrix.index)
+
 def get_top_k_similar_users(user_id,similarity_df,k=10):
     similar_users = similarity_df[user_id].drop(user_id)
     top_k = similar_users.sort_values(ascending=False).head(k)
     return top_k
 
-top_users = get_top_k_similar_users(60,similarity_df,k=10)
-#print(top_users)
+
 def predict_rating(user_id , movie_id,similarity_df,user_item_matrix,k=10):
     top_k=get_top_k_similar_users(user_id,similarity_df,k)
     numerator=0
@@ -58,8 +56,9 @@ def predict_rating(user_id , movie_id,similarity_df,user_item_matrix,k=10):
         return None
     return float(numerator/denominator)
 
-#predicted_rating=predict_rating(4,690,similarity_df,user_item_matrix,10)
-#print(predicted_rating)
+
+
+
 def recommend_movies(user_id,user_item_matrix,similarity_df,k=10,top_n=10):
     unseen_movies = user_item_matrix.loc[user_id][
         user_item_matrix.loc[user_id].isna()
@@ -71,8 +70,7 @@ def recommend_movies(user_id,user_item_matrix,similarity_df,k=10,top_n=10):
             predictions[movie_id]= pred
     recommendations = sorted(predictions.items(),key=lambda x: x[1],reverse=True)[:top_n]
     return recommendations
-#recs2= recommend_movies(672,user_item_matrix,similarity_df,100,top_n=30)
-#print(recs2)
+
 def recommend_movies_with_names(user_id,user_item_matrix,similarity_df,conn,k=10,top_n=10):
     recs = recommend_movies(user_id,user_item_matrix,similarity_df,k,top_n)
     movie_ids= [movie_id for movie_id,score in recs]
@@ -88,7 +86,7 @@ def recommend_movies_with_names(user_id,user_item_matrix,similarity_df,conn,k=10
         })
     return result
 
-#recommend_movies_with_names(789,user_item_matrix,similarity_df,engine,150,20)
+
 def register_user(username,password,conn):
     cursor = mydb.cursor()
     cursor.execute(
@@ -193,11 +191,11 @@ user_id = st.number_input("enter the user id",min_value=1,step=1)
 top_n2 = st.slider("number of movies for recommendation:",min_value=5,max_value=30,value=10)
 if st.button("get recommendations"):
     
-    recs = recommend_movies_with_names(user_id,user_item_matrix,similarity_df,engine,150,top_n2)
+    recs = recommend_movies_with_names(user_id,user_item_matrix,similarity_pearson_df,engine,150,top_n2)
     st.subheader("recommended movies:")
     for rec in recs:
         
-        st.write(f"{rec['title']} - predicted score : {rec['score']}")
+        st.write(f"{rec['title']} - predicted score : {rec['score']:.3f}")
 
 
     

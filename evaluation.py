@@ -20,12 +20,13 @@ train_matrix = train_df.pivot_table(
 # محاسبه شباهت با train
 matrix_filled2 = train_matrix.fillna(0)
 similarity2 = cosine_similarity(matrix_filled2)
+similarity_pearson2 = matrix_filled2.T.corr()
 similarity_df2 = pd.DataFrame(
     similarity2,
     index=train_matrix.index,
     columns=train_matrix.index
 )
-
+similarity_pearson_df2 = pd.DataFrame(similarity_pearson2,index=train_matrix.index,columns=train_matrix.index)
 # ارزیابی روی test
 actuals = []
 predictions = []
@@ -40,8 +41,8 @@ for _, row in test_df.iterrows():
         continue
     if movie_id not in train_matrix.columns:
         continue    
-    pred = predict_rating(user_id, movie_id, similarity_df2, train_matrix,150)
     
+    pred = predict_rating(user_id, movie_id, similarity_pearson_df2, train_matrix,150)
     if pred is not None:
         actuals.append(actual_rating)
         predictions.append(pred)
