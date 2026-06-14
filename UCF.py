@@ -186,9 +186,16 @@ if search_query:
         
 
 st.title("movie recommendation system")
-user_id = st.number_input("enter the user id",min_value=1,step=1)
+if st.session_state.user_id:
+    user_id=st.session_state.user_id
+    st.info(f"recommendations for {st.session_state.username}")
+else :
+    
+    user_id = st.number_input("enter the user id",min_value=1,step=1)
 #k2=st.slider("enter the number of similar users",min_value=10,max_value=200,value=150)
+
 top_n2 = st.slider("number of movies for recommendation:",min_value=5,max_value=30,value=10)
+
 if st.button("get recommendations"):
     
     recs = recommend_movies_with_names(user_id,user_item_matrix,similarity_pearson_df,engine,150,top_n2)
