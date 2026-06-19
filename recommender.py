@@ -40,6 +40,7 @@ class RecommenderSystem:
 
     def get_top_k_similar_users(self, user_id, k=10):
         similar_users = self.similarity_df[user_id].drop(user_id)
+        similar_users = similar_users[similar_users>0]
         return similar_users.sort_values(ascending=False).head(k)
 
     def predict_rating(self, user_id, movie_id, k=10):
@@ -76,7 +77,21 @@ class RecommenderSystem:
         result = []
         for movie_id, score in recs:
             result.append({
+                'movie_id':movie_id,
                 'title': id_to_title[movie_id],
                 'score': float(score)
             })
         return result
+    def explain_recommendation(self, user_id, movie_id, k=10):
+    
+        top_k = self.get_top_k_similar_users(user_id, k)
+        explanation = []
+        for similar_user, similarity_score in top_k.items():
+            rating = self.user_item_matrix.loc[similar_user, movie_id]
+            if not pd.isna(rating):
+                explanation.append({
+                    'similar_user': similar_user,
+                    'similarity': round(float(similarity_score), 2),
+                    'rating': float(rating)
+                })
+        return explanation

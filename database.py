@@ -78,3 +78,14 @@ class Database:
             (user_id,)
         )
         return cursor.fetchone()[0]
+    def movie_exists(self, title):
+        cursor = self.conn.cursor()
+
+        cursor.execute(
+            "SELECT movie_id FROM movies WHERE movie_title = %s LIMIT 1",
+            (title,))
+        result = cursor.fetchone()
+
+        cursor.close()
+
+        return result is not None

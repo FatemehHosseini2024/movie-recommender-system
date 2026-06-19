@@ -2,6 +2,7 @@ import streamlit as st
 from database import Database
 from auth import AuthManager
 from recommender import RecommenderSystem
+import pandas as pd
 
 
 class StreamlitApp:
@@ -90,8 +91,13 @@ class StreamlitApp:
                 st.subheader("add a new movie :")
                 new_title = st.text_input("movie's name :")
                 if st.button("add the movie"):
-                    self.db.add_movie(new_title)
-                    st.success(f"{new_title} movie is added ! now you can rate it")
+                    if self.db.movie_exists(new_title):
+                        st.warning("this movie is already added!")
+                        
+                    else:
+                        self.db.add_movie(new_title)
+                        st.success(f"{new_title} movie is added ! now you can rate it")
+                        
 
     def render_recommendation_section(self):
         st.title("movie recommendation system")
@@ -119,6 +125,20 @@ class StreamlitApp:
                     st.subheader("recommended movies:")
                     for rec in recs:
                         st.write(f"{rec['title']} - predicted score : {rec['score']:.3f}")
+                        
+
+    
+                        with st.expander("Why was this recommended?"):
+                            explanation = self.recommender.explain_recommendation(
+                            user_id, rec['movie_id'], k=150
+                            )
+                            if explanation:
+                                exp_df = pd.DataFrame(explanation)
+                                exp_df.columns = ["Similar User", "Similarity", "Their Rating"]
+                                st.table(exp_df)
+                                st.caption(f"{len(explanation)} users with similar taste to you rated this movie highly.")
+                            else:
+                                st.write("No explanation available.")
 
     def run(self):
         self.render_auth_section()
