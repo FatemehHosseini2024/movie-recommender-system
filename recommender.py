@@ -82,6 +82,33 @@ class RecommenderSystem:
                 'score': float(score)
             })
         return result
+    def get_popular_movies(self, top_n=10, min_ratings=1):
+        """Ranks movies by popularity (number of ratings, then average rating).
+        Used as a fallback when there isn't enough data for collaborative
+        filtering (e.g. a new user with no ratings, or no similar users found)."""
+        ratings = self.db.get_all_ratings()
+        stats = ratings.groupby('item_id')['rating'].agg(['mean', 'count'])
+        stats = stats[stats['count'] >= min_ratings]
+        stats = stats.sort_values(by=['count', 'mean'], ascending=[False, False])
+        return stats.head(top_n)
+
+    def recommend_popular_movies_with_names(self, top_n=10, min_ratings=1):
+        """Same as get_popular_movies, but returns a list of dicts with movie
+        titles included, ready to display in the UI."""
+        popular = self.get_popular_movies(top_n, min_ratings)
+        movie_ids = popular.index.tolist()
+        id_to_title = self.db.get_movie_titles(movie_ids)
+
+        result = []
+        for movie_id, row in popular.iterrows():
+            result.append({
+                'movie_id': movie_id,
+                'title': id_to_title.get(movie_id, 'Unknown'),
+                'score': float(row['mean']),
+                'num_ratings': int(row['count'])
+            })
+        return result
+
     def explain_recommendation(self, user_id, movie_id, k=10):
     
         top_k = self.get_top_k_similar_users(user_id, k)

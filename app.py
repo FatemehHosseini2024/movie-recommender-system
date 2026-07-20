@@ -114,12 +114,14 @@ class StreamlitApp:
             num_ratings = self.db.count_ratings_by_user(user_id)
 
             if num_ratings == 0:
-                st.warning("you should rate at least one movie !")
+                st.info("here are the most popular movies on the site:")
+                self._render_popular_movies(top_n)
             else:
                 recommendations = self.recommender.recommend_movies(user_id, 150, top_n)
 
                 if not recommendations:
-                    st.warning("you should rate at least one of the movies recorded on this site! ")
+                    st.info("not enough data for a personalized match yet, here are the most popular movies:")
+                    self._render_popular_movies(top_n)
                 else:
                     recs = self.recommender.recommend_movies_with_names(user_id, 150, top_n)
                     st.subheader("recommended movies:")
@@ -139,6 +141,17 @@ class StreamlitApp:
                                 st.caption(f"{len(explanation)} users with similar taste to you rated this movie highly.")
                             else:
                                 st.write("No explanation available.")
+
+    def _render_popular_movies(self, top_n):
+        """Displays the most popular movies as a fallback when there isn't
+        enough data yet for a personalized (collaborative filtering) recommendation."""
+        popular_recs = self.recommender.recommend_popular_movies_with_names(top_n)
+        if not popular_recs:
+            st.warning("no movies with ratings found on the site yet!")
+            return
+        st.subheader("popular movies:")
+        for rec in popular_recs:
+            st.write(f"{rec['title']} - average rating : {rec['score']:.2f} ({rec['num_ratings']} ratings)")
 
     def run(self):
         self.render_auth_section()
