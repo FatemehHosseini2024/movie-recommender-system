@@ -44,6 +44,10 @@ class RecommendationOut(BaseModel):
     movie_id: int
     title: str
     score: float
+    num_ratings: int | None = None
+    # "personalized" وقتی از collaborative filtering میاد،
+    # "popular_fallback" وقتی کاربر/فیلم مشابه کافی نبوده و از محبوب‌ترین‌ها برگشته
+    source: str = "personalized"
 
 
 class SimilarUserExplanation(BaseModel):
