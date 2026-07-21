@@ -8,7 +8,7 @@ from api.dependencies import get_db, get_recommender
 
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
 
-DEFAULT_K = 150
+DEFAULT_K = 180
 
 
 @router.get("/{user_id}", response_model=List[RecommendationOut])
@@ -34,7 +34,7 @@ def get_recommendations(
     if not popular:
         raise HTTPException(
             status_code=400,
-            detail="در حال حاضر دیتای کافی برای پیشنهاد فیلم وجود ندارد",
+            detail="currently there is not enough data for recommending movies" ,
         )
     return [RecommendationOut(**movie, source="popular_fallback") for movie in popular]
 

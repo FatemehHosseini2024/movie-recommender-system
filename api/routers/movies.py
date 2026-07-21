@@ -17,7 +17,7 @@ def search_movies(q: str, db: Database = Depends(get_db)):
 @router.post("", response_model=MovieOut, status_code=status.HTTP_201_CREATED)
 def add_movie(payload: MovieCreate, db: Database = Depends(get_db)):
     if db.movie_exists(payload.title):
-        raise HTTPException(status_code=400, detail="این فیلم قبلا اضافه شده است")
+        raise HTTPException(status_code=400, detail="this movie is already added")
     db.add_movie(payload.title)
     results = db.search_movies(payload.title)
     movie_id = next((mid for mid, title in results if title == payload.title), None)

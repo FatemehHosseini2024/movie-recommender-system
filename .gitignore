@@ -2,3 +2,10 @@
 __pycache__/
 .ipynb_checkpoints/
 *.pyc
+
+
+# ترمینال ۱
+uvicorn api.main:app --reload
+
+# ترمینال ۲
+streamlit run app.py
