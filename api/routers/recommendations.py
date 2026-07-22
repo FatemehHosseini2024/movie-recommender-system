@@ -8,7 +8,7 @@ from api.dependencies import get_db, get_recommender
 
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
 
-DEFAULT_K = 180
+DEFAULT_K = 150
 
 
 @router.get("/{user_id}", response_model=List[RecommendationOut])
