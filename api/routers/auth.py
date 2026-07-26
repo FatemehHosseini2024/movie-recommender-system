@@ -12,7 +12,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def register(payload: UserRegister, auth_manager: AuthManager = Depends(get_auth_manager)):
     user_id = auth_manager.register_user(payload.username, payload.password)
     if user_id is None:
-        raise HTTPException(status_code=400, detail="this username has already registered")
+        raise HTTPException(status_code=400, detail="this username has already registered") 
     token = create_access_token(user_id, payload.username)
     return TokenResponse(access_token=token, user_id=user_id, username=payload.username)
 

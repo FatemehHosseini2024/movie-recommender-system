@@ -1,14 +1,4 @@
-"""
-اسکریپت ارزیابی الگوریتم پیشنهاددهنده فیلم (User-Based Collaborative Filtering).
 
-برخلاف فایل اصلی که از ماژول UCF جدا استفاده می‌کرد، این نسخه مستقیماً از
-کلاس‌های واقعی پروژه (Database و RecommenderSystem) استفاده می‌کند تا ارزیابی
-دقیقاً روی همان منطقی انجام شود که در پروداکشن استفاده می‌شود.
-
-نکته مهم: برای جلوگیری از data leakage، ماتریس user-item و ماتریس شباهت
-فقط از روی داده‌های train ساخته می‌شوند (نه از self.similarity_df کل داده
-که RecommenderSystem.refresh_data می‌سازد، چون آن شامل داده‌های test هم می‌شود).
-"""
 
 import sys
 import numpy as np
@@ -18,10 +8,7 @@ from sklearn.model_selection import train_test_split
 
 from database import Database
 
-# روی ویندوز، کنسول پیش‌فرض معمولاً از کدپیج cp1252/charmap استفاده می‌کنه که
-# نمی‌تونه حروف فارسی رو چاپ کنه و باعث UnicodeEncodeError می‌شه.
-# این خط خروجی استاندارد رو صریحاً روی UTF-8 تنظیم می‌کنه تا مستقل از تنظیمات
-# سیستم/ویرایشگر درست کار کنه.
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 

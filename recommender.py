@@ -91,7 +91,7 @@ class RecommenderSystem:
 
         predictions = {}
         for movie_id in unseen_movies:
-            pred = predict_rating_mean_centered(user_id, movie_id, k)
+            pred = self.predict_rating_mean_centered(user_id, movie_id, k)
             if pred is not None:
                 predictions[movie_id] = pred
 

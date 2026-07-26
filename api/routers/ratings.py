@@ -18,7 +18,7 @@ def add_or_update_rating(
     db.add_or_update_rating(current_user["user_id"], payload.movie_id, payload.rating)
     # مطابق منطق فعلی app.py: بعد از هر امتیاز جدید ماتریس similarity رفرش می‌شه
     recommender.refresh_data()
-    return {"detail": "امتیاز با موفقیت ثبت شد"}
+    return {"detail": "rating added successfully"}
 
 
 @router.get("/count/{user_id}")
