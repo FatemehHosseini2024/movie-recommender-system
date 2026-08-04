@@ -111,23 +111,23 @@ def compute_baseline_prediction(movie_id, train_df, global_mean, item_means):
 
 
 def evaluate(k=150, test_size=0.2, random_state=42):
-    # ۱. خواندن داده‌ها از دیتابیس واقعی پروژه (به‌جای فایل UCF قدیمی)
+    
     db = Database()
     ratings = db.get_all_ratings()
 
-    # ۲. تقسیم داده به train و test
+    #  تقسیم داده به train و test
     train_df, test_df = train_test_split(
         ratings, test_size=test_size, random_state=random_state
     )
 
-    # ۳. ساخت ماتریس و ماتریس شباهت فقط با داده‌های train
+    #  ساخت ماتریس و ماتریس شباهت فقط با داده‌های train
     train_matrix, similarity_df = build_train_similarity(train_df)
 
-    # ۳-ب. آماده‌سازی baseline (میانگین امتیاز هر فیلم + میانگین کل، فقط از train)
+    # ب. آماده‌سازی baseline (میانگین امتیاز هر فیلم + میانگین کل، فقط از train)
     global_mean = train_df['rating'].mean()
     item_means = train_df.groupby('item_id')['rating'].mean().to_dict()
 
-    # ۳-ج. میانگین امتیازدهی هر کاربر، برای نسخه‌ی mean-centered
+    # ج. میانگین امتیازدهی هر کاربر، برای نسخه‌ی mean-centered
     user_means = train_matrix.mean(axis=1, skipna=True).to_dict()
 
     # ۴. ارزیابی روی داده‌های test

@@ -6,8 +6,7 @@ from auth import AuthManager
 from recommender import RecommenderSystem
 from api.security import decode_access_token
 
-# این نمونه‌ها یک بار در زمان استارت‌آپ ساخته می‌شن (نه در هر request)
-# تا connection pool و ماتریس similarity به‌طور بی‌مورد دوباره ساخته نشن.
+
 _db = Database()
 _auth_manager = AuthManager(_db)
 _recommender = RecommenderSystem(_db)
@@ -43,8 +42,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
 
 
 def get_optional_user(token: str = Depends(oauth2_scheme)) -> dict | None:
-    """برای اندپوینت‌هایی مثل recommendations که هم برای کاربر لاگین‌کرده
-    و هم با وارد کردن دستی user_id کار می‌کنن (مطابق منطق فعلی app.py)."""
+    
     if token is None:
         return None
     payload = decode_access_token(token)

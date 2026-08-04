@@ -22,14 +22,12 @@ def get_recommendations(
 
     recs = []
     if num_ratings > 0:
-        # کاربر امتیاز داره -> اول collaborative filtering رو امتحان کن
         recs = recommender.recommend_movies_with_names(user_id, DEFAULT_K, top_n)
 
     if recs:
         return [RecommendationOut(**rec, source="personalized") for rec in recs]
 
-    # فال‌بک: کاربر یا اصلا امتیاز نداده، یا کاربر مشابهی براش پیدا نشده
-    # (مثلا کاربر جدیده، یا سلیقه‌اش با هیچ‌کس دیگه‌ای هم‌پوشانی نداره)
+    
     popular = recommender.recommend_popular_movies_with_names(top_n=top_n)
     if not popular:
         raise HTTPException(
@@ -50,6 +48,6 @@ def explain_recommendation(
     if not explanation:
         raise HTTPException(
             status_code=404,
-            detail="توضیحی برای این پیشنهاد یافت نشد (احتمالا این پیشنهاد از fallback فیلم‌های محبوب اومده، نه collaborative filtering)",
+            detail="no explaination found for this recommendation",
         )
     return [SimilarUserExplanation(**item) for item in explanation]

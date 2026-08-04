@@ -35,15 +35,15 @@ class StreamlitApp:
         try:
             response = requests.request(method, url, timeout=10, **kwargs)
         except requests.exceptions.ConnectionError:
-            st.error("اتصال به سرور برقرار نشد. مطمئن شو بک‌اند روشنه.")
+            st.error("connection to server failed. make sure backend is running")
             return None
         except requests.exceptions.Timeout:
-            st.error("درخواست به سرور بیش از حد طول کشید.")
+            st.error("request to server took so long")
             return None
 
         if response.status_code >= 400:
             try:
-                detail = response.json().get("detail", "خطای ناشناخته")
+                detail = response.json().get("detail", "unknown error")
             except ValueError:
                 detail = response.text
             st.error(detail)
@@ -155,9 +155,7 @@ class StreamlitApp:
         top_n = st.slider("number of movies for recommendation:", min_value=5, max_value=30, value=10)
 
         if st.button("get recommendations"):
-            # اندپوینت /recommendations/{user_id} خودش وقتی دیتای کافی نباشه
-            # (کاربر بدون امتیاز، یا کاربر مشابه پیدا نشه) به فیلم‌های
-            # محبوب فال‌بک می‌کنه، پس اینجا دیگه نیازی به چک جدا نیست.
+            
             recs = self._api_request(
                 "GET", f"/recommendations/{int(user_id)}", params={"top_n": top_n}
             )
